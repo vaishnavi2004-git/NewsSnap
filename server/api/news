@@ -1,0 +1,1 @@
+let searchString = q || 'news';
