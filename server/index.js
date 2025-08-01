@@ -1,38 +1,95 @@
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const sqlite3 = require('sqlite3').verbose();
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import sqlite3 from 'sqlite3';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-app.use(cors());
+
+// Enable CORS for all routes
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://newsnap-client.onrender.com' 
+    : 'http://localhost:3000',
+  credentials: true
+}));
+
 app.use(express.json());
 
-const SECRET = 'your_jwt_secret'; // Use env var in production
-const db = new sqlite3.Database('./news-summary.db');
+// Configuration
+const PORT = process.env.PORT || 5000;
+const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const NEWS_API_KEY = process.env.NEWS_API_KEY || 'pub_c97ab7221ff1461d830873d445b6bcc0';
+
+// Database setup
+const db = new sqlite3.Database(
+  process.env.NODE_ENV === 'production'
+    ? '/data/news-summary.db'
+    : './news-summary.db',
+  (err) => {
+    if (err) {
+      console.error('Database connection error:', err);
+      process.exit(1);
+    }
+    console.log('Connected to SQLite database');
+  }
+);
 
 // Create tables if not exist
-// Users
-// Saved stories
+db.serialize(() => {
+  // Create users table
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+  )`, (err) => {
+    if (err) {
+      console.error('Error creating users table:', err);
+      return;
+    }
+    console.log('Users table created/verified');
+  });
 
-db.run(`CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE,
-  password TEXT
-)`);
-db.run(`CREATE TABLE IF NOT EXISTS saved_stories (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER,
-  headline TEXT,
-  summary TEXT,
-  url TEXT,
-  category TEXT,
-  image TEXT
-)`);
+  // Create saved_stories table
+  db.run(`CREATE TABLE IF NOT EXISTS saved_stories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    headline TEXT,
+    summary TEXT,
+    url TEXT,
+    category TEXT,
+    image TEXT
+  )`, (err) => {
+    if (err) {
+      console.error('Error creating saved_stories table:', err);
+      return;
+    }
+    console.log('Saved_stories table created/verified');
+  });
+}); // End of db.serialize()
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // News API route (update)
-app.get('/api/news', async (req, res) => {
+app.get('/api/news', async (req, res, next) => {
   // Accept category, q (search), state, city
   let { category, q, state, city } = req.query;
   try {
@@ -42,9 +99,10 @@ app.get('/api/news', async (req, res) => {
     if (state) searchTerms.push(state);
     if (q) searchTerms.push(q);
     let searchString = searchTerms.join(' ').trim();
-    let url = `https://newsdata.io/api/1/news?apikey=pub_c97ab7221ff1461d830873d445b6bcc0&country=in&language=en,hi`;
+    let url = `https://newsdata.io/api/1/news?apikey=${NEWS_API_KEY}&country=in&language=en,hi`;
     if (category) url += `&category=${category}`;
     if (searchString) url += `&q=${encodeURIComponent(searchString)}`;
+    
     const response = await axios.get(url);
     // Summarize: get first 2 sentences from description
     const summarized = response.data.results.map(article => ({
@@ -121,5 +179,27 @@ app.get('/api/saved', auth, (req, res) => {
 // Root test route
 app.get('/', (req, res) => res.send('API running'));
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start server
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  server.close(() => process.exit(1));
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  server.close(() => process.exit(1));
+});
+
+// Handle SIGTERM
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
