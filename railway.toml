@@ -1,0 +1,20 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "cd server && npm install && node index.js"
+
+[build.environment]
+NPM_CONFIG_PREFIX = "/app/server"
+NODE_ENV = "production"
+
+[build.ignore]
+- "**/.git"
+- "**/.gitignore"
+- "**/.gitmodules"
+- "**/node_modules"
+- "**/README.md"
+- "**/.env*"
+- "**/*.md"
+- "**/.github"
+- "**/.vscode"
