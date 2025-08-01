@@ -1,0 +1,112 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  border-bottom: 1px solid #ffffff;
+  background-color: #ffffff;
+  padding: 0.75rem 2.5rem; /* py-3 px-10 */
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* gap-8 */
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* gap-4 */
+  color: rgb(0, 35, 140);
+  font-weight: bold;
+  font-size: larger;
+}
+.header-icon {
+  width: 1rem;
+  height: 1rem; /* size-4 */
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+}
+.header-nav a{
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+  color: rgb(0, 35, 140);
+  font-size: 1.1rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  line-height: 1.5rem; /* leading-normal */
+  text-decoration: none;
+}
+.header-nav a:hover {
+  font-weight: bold;
+}
+.header-btn {
+  color: #0d0f1c;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  line-height: 1.5rem; /* leading-normal */
+  text-decoration: none;
+  border:none;
+  background-color: #fff;
+}
+.header-right {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  gap: 2rem; /* gap-8 */
+}
+.header-search {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: stretch;
+  border-radius: 0.5rem; /* rounded-lg */
+  overflow: hidden;
+}
+.header-search-input {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  font-size: 0.975rem; /* text-sm */
+  font-weight: 500;
+  align-items: stretch;
+  border-radius: 0.5rem; /* rounded-lg */
+  overflow: hidden;
+}
+.header-search-btn {
+  color: #ffffff;
+  display: flex;
+  background-color: rgb(0, 35, 140);  
+  font-size: 0.975rem; /* text-sm */
+  font-weight: 500;
+  align-items: center;
+  justify-content: center;
+  padding:auto;
+  border: none;
+  margin-left: 10px;
+  border-right: 0;
+  width: 100px;
+  height: 35px;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+.header-link {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 10px;
+}
+.header-account {
+  position: relative;
+  margin-left: 10px;
+  color: rgb(0, 35, 140);
+  font-size: 1.1rem;/* text-sm */
+  font-weight: 500;
+}
+.header-account-toggle:hover {
+  cursor: pointer;
+  font-weight: bold;
+}
+
